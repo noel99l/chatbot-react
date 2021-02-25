@@ -1,6 +1,7 @@
 
 import React from 'react';
 import './assets/styles/style.css';
+import FormDialog from './components/forms/formDialog';
 import { AnswersList, Chats } from './components/index';
 import defaultDataset from "./dataset";
 
@@ -15,6 +16,8 @@ export default class App extends React.Component {
             open: false
         }
         this.selectedAnswer = this.selectedAnswer.bind(this)
+        this.handleClose = this.handleClose.bind(this)
+        this.handleClickOpen = this.handleClickOpen.bind(this)
     }
 
     displayNextQuestion = (nextQuestionId) => {
@@ -34,7 +37,16 @@ export default class App extends React.Component {
     selectedAnswer = (selectedAnswer, nextQuestionId) => {
         switch(true) {
             case (nextQuestionId ==='init'):
-                this.displayNextQuestion(nextQuestionId)
+                setTimeout(() => this.displayNextQuestion(nextQuestionId), 500)
+                break;
+            case (/^https:*/.test(nextQuestionId)):
+                const a = document.createElement('a');
+                a.href = nextQuestionId;
+                a.target = '_blank';
+                a.click();
+                break;
+            case (nextQuestionId === 'contact'):
+                this.handleClickOpen();
                 break;
             default: 
                 const chats = this.state.chats;
@@ -47,7 +59,8 @@ export default class App extends React.Component {
                     chats: chats
                     // chats: this.state.chats.push(chat) は直接stateを書き換えてしまっているのでNG
                 })
-                this.displayNextQuestion(nextQuestionId)
+
+                setTimeout(() => this.displayNextQuestion(nextQuestionId), 500)
                 break;
         }
     }
@@ -56,6 +69,20 @@ export default class App extends React.Component {
         const initAnswer = ''
         this.selectedAnswer(initAnswer, this.state.currentId)
     }
+
+    componentDidUpdate() {
+        const scrollArea = document.getElementById('scroll-area')
+        if(scrollArea) {
+            scrollArea.scrollTop = scrollArea.scrollHeight
+        }
+    }
+    handleClickOpen = () => {
+        this.setState({open: true})
+    };
+
+    handleClose = () => {
+        this.setState({open: false})
+    };
     
     render() {
         return(
@@ -63,6 +90,7 @@ export default class App extends React.Component {
                 <div className="c-box">
                     <Chats chats={this.state.chats}/>
                     <AnswersList answers={this.state.answers} select={this.selectedAnswer}/>
+                    <FormDialog open={this.state.open} handleClose={this.handleClose}/>
                 </div>
             </section>
         )
